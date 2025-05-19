@@ -4,6 +4,8 @@ import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
 import torchvision.models as models
+import math
+from typing import Optional, Tuple
 
 '''
 # --------------------------------------------
@@ -12,6 +14,7 @@ import torchvision.models as models
 # --------------------------------------------
 '''
 
+# edited to support PyTorch Mobile conversion
 
 def sequential(*args):
     """Advanced nn.Sequential.
@@ -255,7 +258,6 @@ class FBCNN(nn.Module):
 
         self.m_tail = conv(nc[0], out_nc, bias=True, mode='C')
 
-
         self.qf_pred = sequential(*[ResBlock(nc[3], nc[3], bias=True, mode='C' + act_mode + 'C') for _ in range(nb)],
                                   torch.nn.AdaptiveAvgPool2d((1,1)),
                                   torch.nn.Flatten(),
@@ -283,12 +285,13 @@ class FBCNN(nn.Module):
         self.to_beta_1 =  sequential(torch.nn.Linear(512, nc[0]),nn.Tanh())
 
 
-    def forward(self, x, qf_input=None):
+    def forward(self, x: torch.Tensor, qf_input: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
+        h, w = x.shape[-2:]
+        pad_h = int((math.ceil(h / 8) * 8 - h))
+        pad_w = int((math.ceil(w / 8) * 8 - w))
 
-        h, w = x.size()[-2:]
-        paddingBottom = int(np.ceil(h / 8) * 8 - h)
-        paddingRight = int(np.ceil(w / 8) * 8 - w)
-        x = nn.ReplicationPad2d((0, paddingRight, 0, paddingBottom))(x)
+        # Use F.pad directly with computed padding
+        x = F.pad(x, (0, pad_w, 0, pad_h), mode='replicate')
 
         x1 = self.m_head(x)
         x2 = self.m_down1(x1)
@@ -310,19 +313,25 @@ class FBCNN(nn.Module):
 
         x = x + x4
         x = self.m_up3[0](x)
-        for i in range(self.nb):
-            x = self.m_up3[i+1](x, gamma_3,beta_3)
+        x = self.m_up3[1](x, gamma_3,beta_3)
+        x = self.m_up3[2](x, gamma_3,beta_3)
+        x = self.m_up3[3](x, gamma_3,beta_3)
+        x = self.m_up3[4](x, gamma_3,beta_3)
 
         x = x + x3
 
         x = self.m_up2[0](x)
-        for i in range(self.nb):
-            x = self.m_up2[i+1](x, gamma_2, beta_2)
+        x = self.m_up2[1](x, gamma_2, beta_2)
+        x = self.m_up2[2](x, gamma_2, beta_2)
+        x = self.m_up2[3](x, gamma_2, beta_2)
+        x = self.m_up2[4](x, gamma_2, beta_2)
         x = x + x2
 
         x = self.m_up1[0](x)
-        for i in range(self.nb):
-            x = self.m_up1[i+1](x, gamma_1, beta_1)
+        x = self.m_up1[1](x, gamma_1, beta_1)
+        x = self.m_up1[2](x, gamma_1, beta_1)
+        x = self.m_up1[3](x, gamma_1, beta_1)
+        x = self.m_up1[4](x, gamma_1, beta_1)
 
         x = x + x1
         x = self.m_tail(x)
@@ -331,7 +340,7 @@ class FBCNN(nn.Module):
         return x, qf
 
 if __name__ == "__main__":
-    x = torch.randn(1, 3, 96, 96)#.cuda()#.to(torch.device('cuda'))
+    x = torch.randn(1, 3, 96, 96) #.cuda()#.to(torch.device('cuda'))
     fbar=FBAR()
     y,qf = fbar(x)
     print(y.shape,qf.shape)
