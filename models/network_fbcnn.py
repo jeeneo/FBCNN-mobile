@@ -3,9 +3,13 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
-import torchvision.models as models
 import math
 from typing import Optional, Tuple
+
+# Add numpy version check
+np_version = np.__version__
+if int(np_version.split('.')[0]) >= 2:
+    print("Warning: NumPy version >= 2.0 detected. This may cause compatibility issues.")
 
 '''
 # --------------------------------------------
