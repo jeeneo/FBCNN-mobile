@@ -10,6 +10,7 @@ there's two ways
 
    you know the drill
 5. `pip install -r requirements.txt`
-6. then run `convert_mobile.py`
+6. download the original FNCNN models and move to `model_zoo`
+7. then run `convert_mobile.py` and edit to add the correct filename
 
 or use the premade `zip` file in releases for future-proofing in case the original repo or models are gone
