@@ -1,6 +1,1 @@
-# WIP
-
-### mobile version of FBCNN (a JPEG artifact denoiser)
-
-### credits:
-mobile app base credits to [adrianerrea](https://github.com/adrianerrea/fromPytorchtoMobile)
+mobile conversion script for FBCNN (a JPEG artifact denoiser)
