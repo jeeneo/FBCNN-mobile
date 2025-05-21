@@ -6,11 +6,6 @@ import torch.nn.functional as F
 import math
 from typing import Optional, Tuple
 
-# Add numpy version check
-np_version = np.__version__
-if int(np_version.split('.')[0]) >= 2:
-    print("Warning: NumPy version >= 2.0 detected. This may cause compatibility issues.")
-
 '''
 # --------------------------------------------
 # Advanced nn.Sequential
