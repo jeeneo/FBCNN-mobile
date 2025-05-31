@@ -6,6 +6,11 @@ import torch.nn.functional as F
 import math
 from typing import Optional, Tuple
 
+# Add numpy version check
+np_version = np.__version__
+if int(np_version.split('.')[0]) >= 2:
+    print("Warning: NumPy version >= 2.0 detected. This may cause compatibility issues.")
+
 '''
 # --------------------------------------------
 # Advanced nn.Sequential
@@ -285,11 +290,12 @@ class FBCNN(nn.Module):
 
 
     def forward(self, x: torch.Tensor, qf_input: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
-        h, w = x.shape[-2:]
-        pad_h = int((math.ceil(h / 8) * 8 - h))
-        pad_w = int((math.ceil(w / 8) * 8 - w))
+        h = x.shape[-2]
+        w = x.shape[-1]
+        # Use tensor ops for ONNX export compatibility
+        pad_h = ((h + 7) // 8) * 8 - h
+        pad_w = ((w + 7) // 8) * 8 - w
 
-        # Use F.pad directly with computed padding
         x = F.pad(x, (0, pad_w, 0, pad_h), mode='replicate')
 
         x1 = self.m_head(x)
