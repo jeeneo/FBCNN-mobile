@@ -2,6 +2,8 @@ mobile conversion script for FBCNN (a JPEG artifact denoiser)
 
 mainly for [DeJPEG](https://github.com/jeeneo/dejpeg/)
 
+## archival notice: read [this issue](https://github.com/jeeneo/dejpeg/issues/26)
+
 1. clone FBCNN
 2. overwrite `models/fbcnn_network.py` with my patched one that is ONNX compatible
 3. create a Python env
